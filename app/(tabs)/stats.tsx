@@ -45,16 +45,6 @@ interface MarkedDates {
   };
 }
 
-interface DrinkDetails {
-  date: string;
-  drinks: number;
-  isVisible: boolean;
-  position?: {
-    x: number;
-    y: number;
-  };
-}
-
 export default function StatsScreen() {
   const { profile } = useProfile();
   const [selectedWeekOffset, setSelectedWeekOffset] = useState(0);
@@ -77,12 +67,6 @@ export default function StatsScreen() {
   const [selectedMonth, setSelectedMonth] = useState(dayjs());
   const [markedDates, setMarkedDates] = useState<MarkedDates>({});
   const fadeAnim = useState(new Animated.Value(1))[0];
-  const [drinkDetails, setDrinkDetails] = useState<DrinkDetails>({
-    date: '',
-    drinks: 0,
-    isVisible: false,
-    position: undefined,
-  });
   const calendarRef = useRef<View>(null);
 
   useEffect(() => {
@@ -235,6 +219,8 @@ export default function StatsScreen() {
       lastDrinkDay,
       consecutiveWeeksUnderLimit: consecutiveWeeks,
     });
+
+    await loadCalendarData(selectedMonth);
   };
 
   const loadCalendarData = async (month: dayjs.Dayjs) => {
@@ -274,47 +260,6 @@ export default function StatsScreen() {
       return `hsla(45, 100%, 51%, ${Math.min(0.7, drinks * 0.15)})`; // Yellow for within limit
     }
     return `hsla(348, 100%, 55%, ${Math.min(0.8, drinks * 0.15)})`; // Red for over limit
-  };
-
-  const handleDayPress = async (date: string, event: any) => {
-    event.persist();
-    const marking = markedDates[date];
-    if (marking && calendarRef.current) {
-      try {
-        // Get calendar's layout information
-        const layout = await new Promise<any>((resolve) => {
-          calendarRef.current?.measureInWindow((x, y, width, height) => {
-            resolve({ x, y, width, height });
-          });
-        });
-
-        // Get the day's position within the calendar
-        const dayWidth = 40; // Width of each day cell
-        const dayHeight = 40; // Height of each day cell
-        const dayNumber = parseInt(dayjs(date).format('D'), 10) - 1;
-        const weekNumber = Math.floor(dayNumber / 7);
-        
-        // Calculate position relative to calendar
-        const dayX = (dayNumber % 7) * dayWidth;
-        const dayY = weekNumber * dayHeight + 50; // Add offset for header
-
-        setDrinkDetails({
-          date,
-          drinks: marking.drinks || 0,
-          isVisible: true,
-          position: {
-            x: layout.x + dayX,
-            y: layout.y + dayY,
-          },
-        });
-        
-        setTimeout(() => {
-          setDrinkDetails(prev => ({...prev, isVisible: false}));
-        }, 2000);
-      } catch (error) {
-        console.log('Error calculating position:', error);
-      }
-    }
   };
 
   const renderBar = (day: DailyData, maxValue: number) => {
@@ -522,10 +467,7 @@ export default function StatsScreen() {
             state?: string;
             marking?: any;
           }) => (
-            <TouchableOpacity 
-              onPress={(event) => date && handleDayPress(date.dateString, event)}
-              disabled={state === 'disabled'}
-            >
+            <TouchableOpacity disabled={state === 'disabled'}>
               <View style={[
                 styles.calendarDay,
                 marking?.customContainerStyle,
@@ -549,30 +491,6 @@ export default function StatsScreen() {
           enableSwipeMonths={true}
           maxDate={dayjs().format('YYYY-MM-DD')}
         />
-
-        {drinkDetails.isVisible && drinkDetails.position && (
-          <View style={[
-            styles.drinkDetailsPopup,
-            {
-              position: 'absolute',
-              top: -60,
-              left: 0,
-              transform: [
-                { translateX: drinkDetails.position.x - 55 },
-                { translateY: drinkDetails.position.y }
-              ],
-            }
-          ]}>
-            <Text style={styles.drinkDetailsText}>
-              {drinkDetails.drinks === 0 
-                ? 'Sober day' 
-                : `${drinkDetails.drinks.toFixed(1)} drinks`}
-            </Text>
-            <Text style={styles.drinkDetailsDate}>
-              {dayjs(drinkDetails.date).format('MMM D, YYYY')}
-            </Text>
-          </View>
-        )}
       </View>
     </Animated.ScrollView>
   );
@@ -732,32 +650,6 @@ const styles = StyleSheet.create({
   calendarDayText: {
     color: Colors.dark.text,
     fontSize: 14,
-    fontWeight: '500',
-  },
-  drinkDetailsPopup: {
-    backgroundColor: Colors.dark.backgroundSecondary,
-    padding: 12,
-    borderRadius: 16,
-    width: 120,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.dark.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
-    zIndex: 1000,
-  },
-  drinkDetailsText: {
-    color: Colors.dark.text,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  drinkDetailsDate: {
-    color: Colors.dark.textSecondary,
-    fontSize: 12,
-    marginTop: 4,
     fontWeight: '500',
   },
   todayText: {

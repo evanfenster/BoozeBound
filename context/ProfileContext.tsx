@@ -6,9 +6,6 @@ export const ProfileContext = createContext<{
   saveProfile: (profile: Profile) => Promise<void>;
 }>({
   profile: {
-    sex: '',
-    weight: '',
-    height: '',
     weeklyLimit: '',
   },
   saveProfile: async () => {},
@@ -16,9 +13,6 @@ export const ProfileContext = createContext<{
 
 export const ProfileProvider = ({ children }: { children: React.ReactNode }) => {
   const [profile, setProfile] = useState<Profile>({
-    sex: '',
-    weight: '',
-    height: '',
     weeklyLimit: '',
   });
 

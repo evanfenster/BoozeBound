@@ -3,9 +3,6 @@ import { nanoid } from 'nanoid/non-secure';
 
 // Types
 export interface Profile {
-  sex: string;
-  weight: string;
-  height: string;
   weeklyLimit: string;
 }
 
@@ -27,9 +24,6 @@ const KEYS = {
 export async function getProfile(): Promise<Profile> {
   const data = await AsyncStorage.getItem(KEYS.PROFILE);
   return data ? JSON.parse(data) : {
-    sex: '',
-    weight: '',
-    height: '',
     weeklyLimit: '',
   };
 }

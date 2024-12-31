@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { DRINK_TYPES } from '@/constants/drinkTypes';
 import dayjs from 'dayjs';
 import { Colors } from '@/constants/Colors';
+import { fromLocalTime, toLocalTime } from '@/utils/date';
 
 export default function TabOneScreen() {
   const [drinks, setDrinks] = useState<Drink[]>([]);
@@ -27,8 +28,11 @@ export default function TabOneScreen() {
   };
 
   const handleAddDrink = async (type: string, volume: number, abv: number, time: Date) => {
-    const drinkDate = new Date(selectedDate.year(), selectedDate.month(), selectedDate.date(),
-      time.getHours(), time.getMinutes());
+    const drinkDate = fromLocalTime(selectedDate)
+      .hour(time.getHours())
+      .minute(time.getMinutes())
+      .second(0)
+      .millisecond(0);
 
     await addDrink({
       type,
@@ -43,8 +47,11 @@ export default function TabOneScreen() {
   const handleEditDrink = async (volume: number, abv: number, time: Date) => {
     if (!editingDrink) return;
     
-    const drinkDate = new Date(selectedDate.year(), selectedDate.month(), selectedDate.date(),
-      time.getHours(), time.getMinutes());
+    const drinkDate = fromLocalTime(selectedDate)
+      .hour(time.getHours())
+      .minute(time.getMinutes())
+      .second(0)
+      .millisecond(0);
     
     await updateDrink({
       ...editingDrink,

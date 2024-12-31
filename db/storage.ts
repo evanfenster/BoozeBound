@@ -1,5 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { nanoid } from 'nanoid/non-secure';
+import dayjs from 'dayjs';
+import { fromLocalTime } from '@/utils/date';
 
 // Types
 export interface Profile {
@@ -53,7 +55,14 @@ export async function addDrink(drink: Omit<Drink, 'id'>): Promise<Drink> {
 
 export async function getDrinksByDate(date: string): Promise<Drink[]> {
   const drinks = await getDrinks();
-  return drinks.filter(drink => drink.timestamp.startsWith(date));
+  const localDate = fromLocalTime(dayjs(date));
+  const startOfDay = localDate.startOf('day');
+  const endOfDay = localDate.endOf('day');
+  
+  return drinks.filter(drink => {
+    const drinkDate = dayjs(drink.timestamp);
+    return drinkDate.isAfter(startOfDay) && drinkDate.isBefore(endOfDay) || drinkDate.isSame(startOfDay) || drinkDate.isSame(endOfDay);
+  });
 }
 
 export async function updateDrink(drink: Drink): Promise<void> {
